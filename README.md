@@ -1,2 +1,2 @@
-# byteball-explorer
-View the DAG and all public transactions
+# bng-onlinewal
+BSure online wallet

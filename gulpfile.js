@@ -15,8 +15,6 @@ var browserify = require("browserify");
 var sourcemaps = require("gulp-sourcemaps");
 var source = require('vinyl-source-stream');
 var buffer = require('vinyl-buffer');
-var globby = require('globby');
-var through = require('through2');
 
 gulp.task('default', ['del', 'compress']);
 
@@ -26,7 +24,7 @@ gulp.task('del', function () {
 });
 gulp.task('compress', ['del'], function () {
     return gulp.src('public/js/*.js')
-        .pipe(uglify())
+        // .pipe(uglify())
         .pipe(rename({suffix: '.min'}))
         .pipe(gulp.dest('public/js/'));
 });

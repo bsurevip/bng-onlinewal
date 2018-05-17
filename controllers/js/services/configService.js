@@ -1,8 +1,8 @@
 'use strict';
 
-  var root = {};
+  var configService = {};
 
-	root.colorOpts = [
+	configService.colorOpts = [
 	  '#DD4B39',
 	  '#F38F12',
 	  '#FAA77F',
@@ -18,10 +18,11 @@
 	];
 
   var constants = require('bng-core/constants.js');
+var storageService = require('./storageService.js').storageService;
   var isTestnet = constants.version.match(/bsure1.0$/);
-  root.TIMESTAMPER_ADDRESS = isTestnet ? 'OPNUXBRSSQQGHKQNEPD2GLWQYEUY5XLD' : 'I2ADHGP4HL6J37NQAD73J7E5SKFIXJOT';
+  configService.TIMESTAMPER_ADDRESS = isTestnet ? 'OPNUXBRSSQQGHKQNEPD2GLWQYEUY5XLD' : 'I2ADHGP4HL6J37NQAD73J7E5SKFIXJOT';
 
-  root.oracles = {
+  configService.oracles = {
 		"FOPUBEUPBC6YLIQDLKL6EW775BMV7YOH": {
 			name: "Bitcoin Oracle",
 			feednames_filter: ["^bitcoin_merkle$", "^random[\\d]+$"],
@@ -113,13 +114,13 @@
   var configCache = null;
 
 
-  root.getSync = function() {
+  configService.getSync = function() {
 	if (!configCache)
 		throw new Error('configService#getSync called when cache is not initialized');
 	return configCache;
   };
 
-  root.get = function(cb) {
+  configService.get = function(cb) {
 
 	storageService.getConfig(function(err, localConfig) {
 	  configCache = migrateLocalConfig(localConfig);
@@ -128,7 +129,7 @@
 	});
   };
 
-  root.set = function(newOpts, cb) {
+  configService.set = function(newOpts, cb) {
 	var config = defaultConfig;
 	storageService.getConfig(function(err, oldOpts) {
 	  if (lodash.isString(oldOpts)) {
@@ -148,21 +149,17 @@
 	});
   };
 
-  root.reset = function(cb) {
+  configService.reset = function(cb) {
 	configCache = lodash.clone(defaultConfig);
 	storageService.removeConfig(cb);
   };
 
-  root.getDefaults = function() {
+  configService.getDefaults = function() {
 	return lodash.clone(defaultConfig);
   };
-  
-  if(window.config){
-	  configCache = migrateLocalConfig(window.config);
-  }else{
-  	root.get(function() {});
-  }
-  
+
+  	configService.get(function() {});
+
   function migrateLocalConfig(localConfig) {
 	  if (localConfig) {
 		  var _config = JSON.parse(localConfig);

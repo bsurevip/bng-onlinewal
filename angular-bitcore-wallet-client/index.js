@@ -5,22 +5,21 @@ console.log("before");
 // we are in public/, require() from webkit context
 var Client = require('../angular-bitcore-wallet-client/bitcore-wallet-client/index.js');
 console.log("after");
-var service = {};
 
-service.getBitcore = function() {
+getBitcore = function() {
     return Client.Bitcore;
 };
 
-service.getSJCL = function() {
+getSJCL = function() {
     return Client.sjcl;
 };
 
 
-service.getUtils = function() {
+getUtils = function() {
     return Client.Utils;
 };
 
-service.getClient = function(walletData) {
+getClient = function(walletData) {
     var bwc = new Client({});
     if (walletData)
         bwc.import(walletData);

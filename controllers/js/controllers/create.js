@@ -1,13 +1,11 @@
 var breadcrumbs = require('bng-core/breadcrumbs.js');
 var constants = require('bng-core/constants.js');
-var configService = require('../services/configService.js').root;
-var storageService = require('../services/storageService.js').root;
-var bwcService=require('../../../angular-bitcore-wallet-client/index.js').service;
-var Profile = require('../models/profile.js');
+var bwcService=require('../../../angular-bitcore-wallet-client/index.js');
+var Profile = require('../models/profile.js').profile;
 var opts = {
-    m: 1,
-    n: 1,
-    name: "walletname",
+    m: 0,
+    n: 0,
+    name: "pc",
     networkName: 'livenet',
     cosigners: [],
     isSingleAddress: true
@@ -21,7 +19,7 @@ root.walletClients = {};
 
 root.assetMetadata = {};
 
-root.Utils = bwcService.getUtils();
+root.Utils = getUtils();
 
 
 root.formatAmount = function(amount, asset, opts) {
@@ -111,7 +109,7 @@ root.setWalletClient = function(credentials) {
     if (root.walletClients[credentials.walletId] && root.walletClients[credentials.walletId].started)
         return;
 
-    var client = bwcService.getClient(JSON.stringify(credentials));
+    var client = getClient(JSON.stringify(credentials));
 
     client.credentials.xPrivKey = root.profile.xPrivKey;
     client.credentials.mnemonic = root.profile.mnemonic;
@@ -125,7 +123,7 @@ root.setWalletClient = function(credentials) {
     client.initialize({}, function(err) {
         if (err) {
             // impossible
-            return;
+
         }
     });
 };
@@ -161,8 +159,8 @@ root.bindProfile = function(profile, cb) {
                 return cb(err);
             root._setFocus(focusedWalletId, function() {
                 console.log("focusedWalletId", focusedWalletId);
-                var Wallet = require('byteballcore/wallet.js');
-                var device = require('byteballcore/device.js');
+                var Wallet = require('bng-core/wallet.js');
+                var device = require('bng-core/device.js');
                 var config = configService.getSync();
                 var firstWc = root.walletClients[lodash.keys(root.walletClients)[0]];
                 if (root.profile.xPrivKeyEncrypted){
@@ -219,7 +217,7 @@ root.loadAndBindProfile = function(cb) {
 root._seedWallet = function(opts, cb) {
     opts = opts || {};
 
-    var walletClient = bwcService.getClient();
+    var walletClient = getClient();
     var network = opts.networkName || 'livenet';
 
 
@@ -252,7 +250,7 @@ root._seedWallet = function(opts, cb) {
             return cb(gettext('Could not create using the specified extended public key'));
         }
     } else {
-        var lang = uxLanguage.getCurrentLanguage();
+        var lang = 'en';
         console.log("will seedFromRandomWithMnemonic for language "+lang);
         try {
             walletClient.seedFromRandomWithMnemonic({
@@ -277,20 +275,19 @@ root._seedWallet = function(opts, cb) {
 };
 
 
-root._createNewProfile = function(opts, cb) {
+_createNewProfile = function(opts, cb) {
     console.log("_createNewProfile");
     if (opts.noWallet)
         return cb(null, Profile.create());
     root._seedWallet({}, function(err, walletClient) {
         if (err)
             return cb(err);
-        var config = configService.getSync();
-        require('byteballcore/wallet.js'); // load hub/ message handlers
-        var device = require('byteballcore/device.js');
+        require('bng-core/wallet.js'); // load hub/ message handlers
+        var device = require('bng-core/device.js');
         var tempDeviceKey = device.genPrivKey();
         // initDeviceProperties sets my_device_address needed by walletClient.createWallet
-        walletClient.initDeviceProperties(walletClient.credentials.xPrivKey, null, config.hub, config.deviceName);
-        var walletName = gettextCatalog.getString('Small Expenses Wallet');
+        walletClient.initDeviceProperties(walletClient.credentials.xPrivKey, null, 'bsure.vip/bb', "pc");
+        var walletName = "pc";
         walletClient.createWallet(walletName, 1, 1, {
             //	isSingleAddress: true,
             network: 'livenet'
@@ -301,30 +298,22 @@ root._createNewProfile = function(opts, cb) {
             var xPrivKey = walletClient.credentials.xPrivKey;
             var mnemonic = walletClient.credentials.mnemonic;
             console.log("mnemonic: "+mnemonic+', xPrivKey: '+xPrivKey);
-            var p = Profile.create({
-                credentials: [JSON.parse(walletClient.export())],
-                xPrivKey: xPrivKey,
-                mnemonic: mnemonic,
-                tempDeviceKey: tempDeviceKey.toString('base64'),
-                my_device_address: device.getMyDeviceAddress()
-            });
+            // var p = Profile.create({
+            //     credentials: [JSON.parse(walletClient.export())],
+            //     xPrivKey: xPrivKey,
+            //     mnemonic: mnemonic,
+            //     tempDeviceKey: tempDeviceKey.toString('base64'),
+            //     my_device_address: device.getMyDeviceAddress()
+            // });
             device.setTempKeys(tempDeviceKey, null, saveTempKeys);
-            return cb(null, p);
+            return cb(null, "done");
         });
     });
 };
 
 // create additional wallet (the first wallet is created in _createNewProfile())
-root.createWallet = function(opts, cb) {
-    if (!root.focusedClient.credentials.xPrivKey){ // locked
-        root.unlockFC(null, function(err){
-            if (err)
-                return cb(err.message);
-            root.createWallet(opts, cb);
-        });
-        return console.log('need password to create new wallet');
-    }
-    var walletDefinedByKeys = require('byteballcore/wallet_defined_by_keys.js');
+createWallet = function(opts, cb) {
+    var walletDefinedByKeys = require('bng-core/wallet_defined_by_keys.js');
     walletDefinedByKeys.readNextAccount(function(account){
         console.log("next account = "+account);
         if (!opts.extendedPrivateKey && !opts.mnemonic){
@@ -396,7 +385,7 @@ root.setMetaData = function(walletClient, addressBook, cb) {
             return cb(null);
         });
     });
-}
+};
 
 root._addWalletClient = function(walletClient, opts, cb) {
     var walletId = walletClient.credentials.walletId;
@@ -426,7 +415,7 @@ root._addWalletClient = function(walletClient, opts, cb) {
 
 root.importWallet = function(str, opts, cb) {
 
-    var walletClient = bwcService.getClient();
+    var walletClient = getClient();
 
     $log.debug('Importing Wallet:', opts);
     try {
@@ -453,7 +442,7 @@ root.importWallet = function(str, opts, cb) {
 
 
 root.importExtendedPrivateKey = function(xPrivKey, opts, cb) {
-    var walletClient = bwcService.getClient();
+    var walletClient = getClient();
 
     walletClient.importFromExtendedPrivateKey(xPrivKey, function(err) {
         if (err)
@@ -473,7 +462,7 @@ root._normalizeMnemonic = function(words) {
 
 root.importMnemonic = function(words, opts, cb) {
 
-    var walletClient = bwcService.getClient();
+    var walletClient = getClient();
 
     words = root._normalizeMnemonic(words);
     walletClient.importFromMnemonic(words, {
@@ -491,7 +480,7 @@ root.importMnemonic = function(words, opts, cb) {
 
 root.importExtendedPublicKey = function(opts, cb) {
 
-    var walletClient = bwcService.getClient();
+    var walletClient = getClient();
 
     walletClient.importFromExtendedPublicKey(opts.extendedPublicKey, opts.externalSource, opts.entropySource, {
         account: opts.account || 0,
@@ -606,7 +595,8 @@ root.lockFC = function() {
     var fc = root.focusedClient;
     try {
         fc.lock();
-    } catch (e) {};
+    } catch (e) {
+    }
 };
 
 root.getWallets = function(network) {
@@ -638,13 +628,14 @@ root.requestTouchid = function(cb) {
     var fc = root.focusedClient;
     var config = configService.getSync();
     config.touchIdFor = config.touchIdFor || {};
-    if (window.touchidAvailable && config.touchIdFor[fc.credentials.walletId])
-    else
+    if (window.touchidAvailable && config.touchIdFor[fc.credentials.walletId]){
+
+    }else
         return cb();
 };
 
 root.replaceProfile = function (xPrivKey, mnemonic, myDeviceAddress, cb) {
-    var device = require('byteballcore/device.js');
+    var device = require('bng-core/device.js');
 
     root.profile.credentials = [];
     root.profile.xPrivKey = xPrivKey;
@@ -671,8 +662,11 @@ root.setSingleAddressFlag = function(newValue) {
     configService.set(opts, function(err) {
         if (err) {
             fc.isSingleAddress = oldValue;
-            return;
+
         }
     });
-}
+};
+_createNewProfile(opts, function (err,data) {
+    console.log("==============>"+err+data);
+})
 

@@ -9,8 +9,19 @@ var server = require('http').Server(app);
 var io = require('socket.io')(server);
 var ws = require('./controllers/ws');
 var db = require('bng-core/db.js');
+var aesutil = require('./aes.js');
 
 app.use(express.static(__dirname + '/public'));
+var bodyParser = require('body-parser');
+var router = express.Router();
+var multer = require('multer');
+app.use(bodyParser.json()); // for parsing application/json
+app.use(bodyParser.urlencoded({extended: true})); // for parsing application/x-www-form-urlencoded
+
+router.post('/upload', multer().single('file'), function (req, res) {// for parsing multipart/form-data
+    console.log(req.file);//file
+    console.log(req.body);
+});
 
 app.all('*', function (req, res, next) {
     res.header("Access-Control-Allow-Origin", "*");
@@ -23,6 +34,10 @@ app.all('*', function (req, res, next) {
 
 app.get('/', function (req, res) {
     res.sendFile(__dirname + '/views/index.html');
+});
+app.post('/createwallet', function (req, res) {
+    var adds = aesutil.encryption("thisisatest", "123456")
+    res.json(req.body.psw + adds);
 });
 
 app.use(function (req, res, next) {

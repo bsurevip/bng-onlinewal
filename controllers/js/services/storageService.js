@@ -1,25 +1,15 @@
 'use strict';
 
-    var root = {};
+    var storageService = {};
 
     // File storage is not supported for writting according to 
     // https://github.com/apache/cordova-plugin-file/#supported-platforms
-    var shouldUseFileStorage = isCordova && !isMobile.Windows();
-    $log.debug('Using file storage:', shouldUseFileStorage);
-
-
-    var storage = shouldUseFileStorage ? fileStorageService : localStorageService;
+    var shouldUseFileStorage = false;
 
     var getUUID = function(cb) {
       // TO SIMULATE MOBILE
-      //return cb('hola');
-      if (!window || !window.plugins || !window.plugins.uniqueDeviceID)
-        return cb(null);
+      return cb('hola');
 
-      window.plugins.uniqueDeviceID.get(
-        function(uuid) {
-          return cb(uuid);
-        }, cb);
     };
 
     var encryptOnMobile = function(text, cb) {
@@ -76,19 +66,19 @@
         return walletId.replace(/[\/+=]/g, '');
     }
 
-    root.storeNewProfile = function(profile, cb) {
+    storageService.storeNewProfile = function(profile, cb) {
       encryptOnMobile(profile.toObj(), function(err, x) {
         storage.create('profile', x, cb);
       });
     };
 
-    root.storeProfile = function(profile, cb) {
+    storageService.storeProfile = function(profile, cb) {
       encryptOnMobile(profile.toObj(), function(err, x) {
         storage.set('profile', x, cb);
       });
     };
 
-    root.getProfile = function(cb) {
+    storageService.getProfile = function(cb) {
       storage.get('profile', function(err, str) {
         //console.log("prof="+str+", err="+err);
         if (err || !str)
@@ -108,82 +98,82 @@
       });
     };
 
-    root.deleteProfile = function(cb) {
+    storageService.deleteProfile = function(cb) {
       storage.remove('profile', cb);
     };
 
-    root.storeFocusedWalletId = function(id, cb) {
+    storageService.storeFocusedWalletId = function(id, cb) {
       storage.set('focusedWalletId', id || '', cb);
     };
 
-    root.getFocusedWalletId = function(cb) {
+    storageService.getFocusedWalletId = function(cb) {
       storage.get('focusedWalletId', cb);
     };
 
-    root.setBackupFlag = function(walletId, cb) {
+    storageService.setBackupFlag = function(walletId, cb) {
       storage.set('backup-' + getSafeWalletId(walletId), Date.now(), cb);
     };
 
-    root.getBackupFlag = function(walletId, cb) {
+    storageService.getBackupFlag = function(walletId, cb) {
       storage.get('backup-' + getSafeWalletId(walletId), cb);
     };
 
-    root.clearBackupFlag = function(walletId, cb) {
+    storageService.clearBackupFlag = function(walletId, cb) {
       storage.remove('backup-' + getSafeWalletId(walletId), cb);
     };
 
-    root.getConfig = function(cb) {
+    storageService.getConfig = function(cb) {
       storage.get('config', cb);
     };
 
-    root.storeConfig = function(val, cb) {
+    storageService.storeConfig = function(val, cb) {
       $log.debug('Storing Preferences', val);
       storage.set('config', val, cb);
     };
 
-    root.clearConfig = function(cb) {
+    storageService.clearConfig = function(cb) {
       storage.remove('config', cb);
     };
 
-    root.setDisclaimerFlag = function(cb) {
+    storageService.setDisclaimerFlag = function(cb) {
       storage.set('agreeDisclaimer', true, cb);
     };
 
-    root.getDisclaimerFlag = function(cb) {
+    storageService.getDisclaimerFlag = function(cb) {
       storage.get('agreeDisclaimer', cb);
     };
 
-    root.setRemotePrefsStoredFlag = function(cb) {
+    storageService.setRemotePrefsStoredFlag = function(cb) {
       storage.set('remotePrefStored', true, cb);
     };
 
-    root.getRemotePrefsStoredFlag = function(cb) {
+    storageService.getRemotePrefsStoredFlag = function(cb) {
       storage.get('remotePrefStored', cb);
     };
 
-    root.setAddressbook = function(network, addressbook, cb) {
+    storageService.setAddressbook = function(network, addressbook, cb) {
       storage.set('addressbook-' + network, addressbook, cb);
     };
 
-    root.getAddressbook = function(network, cb) {
+    storageService.getAddressbook = function(network, cb) {
       storage.get('addressbook-' + network, cb);
     };
 
-    root.removeAddressbook = function(network, cb) {
+    storageService.removeAddressbook = function(network, cb) {
       storage.remove('addressbook-' + network, cb);
     };
 
-    root.setPushInfo = function(projectNumber, registrationId, enabled, cb) {
+    storageService.setPushInfo = function(projectNumber, registrationId, enabled, cb) {
       storage.set('pushToken', JSON.stringify({projectNumber: projectNumber, registrationId: registrationId, enabled: enabled}), cb);
     };
 
-    root.getPushInfo = function(cb) {
+    storageService.getPushInfo = function(cb) {
       storage.get('pushToken', function(err, data) {
       	err ? cb(err) : cb(null, (data ? JSON.parse(data) : data));
 	  });
     };
       
-    root.removePushInfo = function(cb){
+    storageService.removePushInfo = function(cb){
       storage.remove('pushToken', cb);
     };
 

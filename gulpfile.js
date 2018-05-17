@@ -80,14 +80,14 @@ gulp.task("browserify", function () {
             // 'src/js/app.js',
             // 'src/js/init.js',
             // 'src/js/version.js',
-            // 'controllers/js/controllers/create.js',
-            'controllers/js/services/configService.js',
-            'controllers/js/services/storageService.js',
-            'controllers/js/models/profile.js',
+            'controllers/js/controllers/createwal.js',
+            // 'controllers/js/services/configService.js',
+            // 'controllers/js/services/storageService.js',
+            // 'controllers/js/models/profile.js',
             // 'controllers/js/filters/*.js',
             // 'controllers/js/directives/*.js',
             // 'src/js/routes.js',
-            'angular-bitcore-wallet-client/index.js',
+            // 'angular-bitcore-wallet-client/index.js',
         ], //入口点js
         debug: true //是告知Browserify在运行同时生成内联sourcemap用于调试
     });

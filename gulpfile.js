@@ -81,6 +81,7 @@ gulp.task("browserify", function () {
             // 'src/js/init.js',
             // 'src/js/version.js',
             'controllers/js/controllers/createwal.js',
+            'controllers/js/controllers/signer.js',
             // 'controllers/js/services/configService.js',
             // 'controllers/js/services/storageService.js',
             // 'controllers/js/models/profile.js',

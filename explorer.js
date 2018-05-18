@@ -56,7 +56,7 @@ app.get('/', function (req, res) {
  * 获取公钥，rsa加密后服务端解密
  */
 app.post('/getPublicKey', function (req, res) {
-    res.json("aaaa");
+    res.json(pubkeys);
 });
 
 /**

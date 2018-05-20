@@ -12,15 +12,14 @@
 var objectHash = require('bng-core/object_hash.js');
 var ecdsaSig = require('bng-core/signature.js');
 var Mnemonic = require('bitcore-mnemonic');
-
+var keys;
+var definitions;
 var signer = {
-    key: "",
-    definition: [],
     readSigningPaths: function (conn, address, handleLengthsBySigningPaths) {
         handleLengthsBySigningPaths({r: 88});
     },
     readDefinition: function (conn, address, handleDefinition) {
-        handleDefinition(null, this.definition);
+        handleDefinition(null, definitions);
     },
     sign: function (objUnsignedUnit, assocPrivatePayloads, address, signing_path, handleSignature) {
         var buf_to_sign = objectHash.getUnitHashToSign(objUnsignedUnit);
@@ -31,7 +30,7 @@ var signer = {
         //     walletdata["is_change"],
         //     walletdata["address_index"]
         // );
-        handleSignature(null, ecdsaSig.sign(buf_to_sign, this.key));
+        handleSignature(null, ecdsaSig.sign(buf_to_sign, new Buffer(keys)));
     }
 };
 
@@ -46,8 +45,8 @@ function signWithLocalPrivateKey(mnemonic_phrase, passphrase, account, is_change
 }
 
 module.exports = function createPayment(address, key, definition, outputs, cb) {
-    signer.key = key;
-    signer.definition = definition;
+    keys = key;
+    definitions = definition;
     var composer = require('bng-core/composer.js');
     var network = require('bng-core/network.js');
     var callbacks = composer.getSavingCallbacks({
@@ -67,8 +66,8 @@ module.exports = function createPayment(address, key, definition, outputs, cb) {
         {address: address, amount: 0},      // the change
         // {address: payee_address, amount: 100}  // the receiver
     ];
-    arrOutputs.concat(outputs);
-    composer.composePaymentJoint([address], arrOutputs, signer, callbacks);
+    var out = arrOutputs.concat(outputs);
+    composer.composePaymentJoint([address], out, signer, callbacks);
 }
 
 // function loadWalletConfig(onDone) {

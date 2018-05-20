@@ -61,26 +61,27 @@ app.post('/getPublicKey', function (req, res) {
 
 /**
  * 转账
- * {
- *   "sign": "Im/G4XbicuzLw2TwEbX6hymf3FR6Cbon4x240J2FBK4hdculMJGJUonq10u5KqpluOG4jErkxMF2cZNmDSrvDV1gdLoJq9LUQEB1PwlCbRp69GtB8lU61y4K7rKnvCrKm1im0FmKhSLX7zoiOB09DhRTVscRM13cyrRAHq43C0suMfUtgS8z2bdwRiz4uFMWFPHbQVsufnUWQl3nbcACH+qfp99nP64KaZoy0RPsn/zENh0fVK+vWfpBxP9DOZEWlydApgHC65ZDx9Rb4zOtAQ1Qx9rF+mVDn3vwPO2S6I3Qo+9Qy0ViXugZybPQMXiITDVaSx1O++BPwcQY/wfqkA==",
- *   "definition": [
- *     "sig",
- *     {
- *       "pubkey": "Ah4HIrzd+9JPPqqjCw1a/5rSUGw7X4s2yPGdC8jR0CvY"
- *     }
- *   ],
- *   "address": "IBTDIDUIVJGOCTDE7QFSV4I7AXMPPX3N",
- *   "sendto": [
- *     {
- *       "address": "N4PCD3NG6JUT5B2YBBGJ6HJCO4JS37XH",
- *       "amount": 100
- *     }
- *   ]
- * }
+ * rsa加密json字符串
+ * {\n" +
+    "    \"sign\": \"{\\\"type\\\":\\\"Buffer\\\",\\\"data\\\":[99,29,214,15,128,87,218,64,154,92,27,187,170,28,18,119,144,242,135,97,58,34,226,61,63,51,219,81,88,97,26,34]}\",\n" +
+    "    \"definition\": [\n" +
+    "        \"sig\",\n" +
+    "        {\n" +
+    "            \"pubkey\": \"Ah4HIrzd+9JPPqqjCw1a/5rSUGw7X4s2yPGdC8jR0CvY\"\n" +
+    "        }\n" +
+    "    ],\n" +
+    "    \"address\": \"IBTDIDUIVJGOCTDE7QFSV4I7AXMPPX3N\",\n" +
+    "    \"sendto\": [\n" +
+    "        {\n" +
+    "            \"address\": \"IBTDIDUIVJGOCTDE7QFSV4I7AXMPPX3N\",\n" +
+    "            \"amount\": 100\n" +
+    "        }\n" +
+    "    ]\n" +
+    "}
  */
 app.post('/pay', function (req, res) {
-    var derivedPrivateKey = new Buffer(key.decrypt(req.body.sign, 'utf8'), 'ascii');
-    payment(req.body.address, derivedPrivateKey, req.body.definition, req.body.sendto, function (err, data) {
+    var data = JSON.parse(key.decrypt(req.body.data, 'utf8'));
+    payment(data.address, JSON.parse(data.sign).data, data.definition, data.sendto, function (err, data) {
         if (err)
             res.status(500).send({err: err});
         res.json(data);

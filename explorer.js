@@ -29,7 +29,7 @@ var payment = require('./controllers/js/controllers/payment.js');
 key.setOptions({encryptionScheme: 'pkcs1'});
 pubkey.setOptions({encryptionScheme: 'pkcs1'});
 device.setDeviceHub(conf.hub);
-app.use(express.static(__dirname + '/public'));
+app.use(express.static(__dirname + '/dist'));
 var bodyParser = require('body-parser');
 var router = express.Router();
 var multer = require('multer');
@@ -51,7 +51,7 @@ app.all('*', function (req, res, next) {
 });
 
 app.get('/', function (req, res) {
-    res.sendFile(__dirname + '/views/index.html');
+    res.sendFile(__dirname + '/dist/index.html');
 });
 
 /**

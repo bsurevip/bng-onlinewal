@@ -1,21 +1,23 @@
 /*jslint node: true */
 "use strict";
 require('./relay');
-var ecdsaSig = require('bng-core/signature.js');
-var Mnemonic = require('bitcore-mnemonic');
-var objectHash = require('bng-core/object_hash.js');
+var constants = require('bng-core/constants.js');
+var validationUtils = require("bng-core/validation_utils.js");
 var conf = require('bng-core/conf.js');
+var Wallet = require('bng-core/wallet.js');
 var eventBus = require('bng-core/event_bus.js');
 var express = require('express');
+var storage = require('bng-core/storage.js');
 var app = express();
+var network = require('bng-core/network.js');
 var server = require('http').Server(app);
 var io = require('socket.io')(server);
 var ws = require('./controllers/ws');
 var db = require('bng-core/db.js');
 var units = require('./controllers/units');
 var address = require('./controllers/address');
-var crypto = require('crypto');
 var fs = require('fs');
+var device = require('bng-core/device.js');
 var NodeRSA = require('node-rsa');
 var privatePem = fs.readFileSync('./pem/rsa_private_key.pem');
 var publicPem = fs.readFileSync('./pem/rsa_public_key.pem');
@@ -26,7 +28,7 @@ var pubkey = new NodeRSA(pubkeys);
 var payment = require('./controllers/js/controllers/payment.js');
 key.setOptions({encryptionScheme: 'pkcs1'});
 pubkey.setOptions({encryptionScheme: 'pkcs1'});
-
+device.setDeviceHub(conf.hub);
 app.use(express.static(__dirname + '/public'));
 var bodyParser = require('body-parser');
 var router = express.Router();
@@ -58,6 +60,16 @@ app.get('/', function (req, res) {
 app.post('/getPublicKey', function (req, res) {
     res.json(pubkeys);
 });
+app.post('/verifyAsset', function (req, res) {
+    if (req.body.asset && validationUtils.isValidBase64(req.body.asset, constants.HASH_LENGTH))
+        res.json(true);
+    res.json("invalid asset");
+});
+app.post('/verifyAddress', function (req, res) {
+    if (req.body.address && validationUtils.isValidAddress(req.body.address))
+        res.json(true);
+    res.json("invalid address");
+});
 
 /**
  * 转账
@@ -87,6 +99,12 @@ app.post('/pay', function (req, res) {
         res.json(data);
     });
 });
+
+app.post('/getBalances', function (req, res) {
+    Wallet.readBalancesOnAddresses(req.body.wallet, function (assocBalances) {
+        res.json(assocBalances);
+    });
+});
 /**
  *
  */
@@ -105,18 +123,22 @@ app.post('/addressinfo', function (req, res) {
         res.json(addressInfo);
     });
 });
-app.post('/getAddressTransactions', function (req, res) {
-    var inid = req.body.lastInputsROWID || 0;
-    var outid = req.body.lastOutputsROWID || 0;
-    address.getAddressTransactions(req.body.address, inid, outid, function (objTransactions, newLastInputsROWID, newLastOutputsROWID) {
-        var Transactions = {
-            address: req.body.address,
-            objTransactions: objTransactions,
-            end: objTransactions === null || Object.keys(objTransactions).length < 5,
-            newLastInputsROWID: newLastInputsROWID,
-            newLastOutputsROWID: newLastOutputsROWID
-        };
-        res.json(Transactions);
+/**
+ * 获取unit信息
+ */
+app.post('/getInfoOnUnit', function (req, res) {
+    units.getInfoOnUnit(req.body.unit, function (data) {
+        res.json(data);
+    });
+});
+/**
+ * asset unit数组
+ */
+app.post('/getAssetMetadata', function (req, res) {
+    device.requestFromHub('hub/get_asset_metadata', req.body.asset, function (err, response) {
+        if (err)
+            res.json(err);
+        res.json(response)
     });
 });
 

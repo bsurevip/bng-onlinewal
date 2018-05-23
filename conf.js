@@ -9,7 +9,7 @@ exports.bLight = false;
 exports.webPort = 4000;
 
 exports.storage = 'sqlite';
-
+exports.hub = 'bsure.vip/bb';
 
 exports.initial_witnesses = [
 	'CDOIS7YFVQATERZX34B45DJSVLKYEH3D',

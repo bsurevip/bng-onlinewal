@@ -6,7 +6,7 @@ var crypto = require('crypto');
 var Mnemonic = require('bitcore-mnemonic');
 var Bitcore = require('bitcore-lib');
 var objectHash = require('bng-core/object_hash');
-var device = require('bng-core/device.js');
+// var device = require('bng-core/device.js');
 // var walletDefinedByKeys = require('bng-core/wallet_defined_by_keys.js');
 // var network = require('bng-core/network.js');
 // var configPath = "../wallets/";
@@ -57,8 +57,8 @@ function createWallet(mnemonic_phrase) {
     var arrDefinition = ['sig', {pubkey: pubkey}];
     var address = objectHash.getChash160(arrDefinition);
     var wallet = crypto.createHash("sha256").update(strXPubKey, "utf8").digest("base64");
-    var devicePrivKey = xPrivKey.derive("m/1'").privateKey.bn.toBuffer({size: 32});
-    device.setDevicePrivateKey(devicePrivKey); // we need device address before creating a wallet
+    // var devicePrivKey = xPrivKey.derive("m/1'").privateKey.bn.toBuffer({size: 32});
+    // device.setDevicePrivateKey(devicePrivKey); // we need device address before creating a wallet
     var obj = {};
     obj['passphrase'] = passphrase;
     obj['mnemonic_phrase'] = mnemonic.phrase;
@@ -81,23 +81,23 @@ function createWallet(mnemonic_phrase) {
 //     });
 // }
 
-function scanForAddresses(mnemonic, cb) {
-    var xPrivKey = new Mnemonic(mnemonic).toHDPrivateKey();
-    var currentWalletIndex = 0;
-    var xPubKey = Bitcore.HDPublicKey(xPrivKey.derive("m/44'/0'/" + currentWalletIndex + "'"));
-    var assocMaxAddressIndexes = {};
-    var is_change = 0;
-    if (!assocMaxAddressIndexes[currentWalletIndex]) assocMaxAddressIndexes[currentWalletIndex] = {
-        main: 0,
-        change: 0
-    };
-    var arrTmpAddresses = [];
-    for (var i = 0; i < 20; i++) {
-        var index = (is_change ? assocMaxAddressIndexes[currentWalletIndex].change : assocMaxAddressIndexes[currentWalletIndex].main) + i;
-        arrTmpAddresses.push(objectHash.getChash160(["sig", {"pubkey": derivePubkey(xPubKey, 'm/' + is_change + '/' + index)}]));
-    }
-    cb(arrTmpAddresses);
-}
+// function scanForAddresses(mnemonic, cb) {
+//     var xPrivKey = new Mnemonic(mnemonic).toHDPrivateKey();
+//     var currentWalletIndex = 0;
+//     var xPubKey = Bitcore.HDPublicKey(xPrivKey.derive("m/44'/0'/" + currentWalletIndex + "'"));
+//     var assocMaxAddressIndexes = {};
+//     var is_change = 0;
+//     if (!assocMaxAddressIndexes[currentWalletIndex]) assocMaxAddressIndexes[currentWalletIndex] = {
+//         main: 0,
+//         change: 0
+//     };
+//     var arrTmpAddresses = [];
+//     for (var i = 0; i < 20; i++) {
+//         var index = (is_change ? assocMaxAddressIndexes[currentWalletIndex].change : assocMaxAddressIndexes[currentWalletIndex].main) + i;
+//         arrTmpAddresses.push(objectHash.getChash160(["sig", {"pubkey": derivePubkey(xPubKey, 'm/' + is_change + '/' + index)}]));
+//     }
+//     cb(arrTmpAddresses);
+// }
 
 // createWallet();
 // createWallet("label media profit swarm flame injury tiny scan bottom warfare royal original");

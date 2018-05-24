@@ -29,7 +29,7 @@
       </div>
       <!--输入口令导入-->
       <div style="margin-top: 60px">
-        <h1>使用口令回复钱包</h1>
+        <h1>使用口令恢复钱包</h1>
         <div>
           <el-form :model="ruleForm1" :rules="rules1" ref="ruleForm1">
             <h3></h3>
@@ -114,7 +114,7 @@ export default {
     submitForm1 (formName) {
       this.$refs[formName].validate((valid) => {
         if (valid) {
-          // 口令回复
+          // 口令恢复
           try {
             let command = createWallet(this.ruleForm1.decryptkey)
             this.Global.walletAddress = command.address

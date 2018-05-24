@@ -29,7 +29,7 @@
       </div>
       <!--输入口令导入-->
       <div style="margin-top: 60px">
-        <h1>使用口令恢复钱包</h1>
+        <h1>使用口令回复钱包</h1>
         <div>
           <el-form :model="ruleForm1" :rules="rules1" ref="ruleForm1">
             <h3></h3>
@@ -48,12 +48,36 @@
           </el-form>
         </div>
       </div>
+      <div  v-show="isWalletInfo">
+        <br>
+        <br>
+        <hr style="width: 50%">
+        <table style="margin: auto;text-align: left">
+          <tr>
+            <th>钱包ID：</th>
+            <td>{{this.Global.walletId}}</td>
+          </tr>
+          <tr>
+            <th>钱包地址：</th>
+            <td>{{this.Global.walletAddress}}</td>
+          </tr>
+          <tr>
+            <th>余额：</th>
+            <td>{{this.bytes}}</td>
+          </tr>
+          <tr>
+            <th>公钥：</th>
+            <td>{{this.Global.definition[1] ? this.Global.definition[1].pubkey : '' }}</td>
+          </tr>
+        </table>
+      </div>
       <el-dialog
         title="提示"
         :visible.sync="dialogVisible"
         width="30%"
         :before-close="handleClose">
-        <span>解密成功</span>
+        <span v-if="jiemichenggong">解密成功</span>
+        <span v-else>解密失败</span>
         <span slot="footer" class="dialog-footer">
     <el-button @click="dialogVisible = false">取 消</el-button>
     <el-button type="primary" @click="init()">确 定</el-button>
@@ -73,7 +97,10 @@ export default {
       dialogVisible: false,
       commandWalletLoading: false,
       aa: true,
+      jiemichenggong: true,
       inputFile: '',
+      isWalletInfo: false,
+      bytes: 0,
       ruleForm: {
         decryptkey: ''
       },
@@ -114,7 +141,7 @@ export default {
     submitForm1 (formName) {
       this.$refs[formName].validate((valid) => {
         if (valid) {
-          // 口令恢复
+          // 口令回复
           try {
             let command = createWallet(this.ruleForm1.decryptkey)
             this.Global.walletAddress = command.address
@@ -122,10 +149,24 @@ export default {
             this.Global.mnemonic_phrase = command.mnemonic_phrase
             this.Global.walletId = command.wallet
             this.dialogVisible = true
+            this.jiemichenggong = true
+            // 获取钱包金额
+            let _this = this
+            this.Axios.post(this.Global.baseUrl + 'addressInfo', {address: this.Global.walletAddress}).then(function (response) {
+              _this.isWalletInfo = true
+              _this.bytes = response.data.objBalance.bytes
+              console.log(response)
+            }).catch(function (error) {
+              _this.isWalletInfo = false
+              console.log(error)
+              console.log('错误')
+            })
           } catch (e) {
             alert('口令不正确，请输入正确的口令')
           }
         } else {
+          this.dialogVisible = true
+          this.jiemichenggong = false
           console.log('error submit!!')
           return false
         }
@@ -137,6 +178,8 @@ export default {
           this.decrypt()
           this.createWalletLoading = !this.createWalletLoading
         } else {
+          this.dialogVisible = true
+          this.jiemichenggong = false
           console.log('error submit!!')
           return false
         }
@@ -162,9 +205,23 @@ export default {
         this.Global.definition = decryptedStr.definition
         this.Global.mnemonic_phrase = decryptedStr.mnemonic_phrase
         this.Global.walletId = decryptedStr.wallet
-        console.log(decryptedStr)
+        // 获取钱包金额
+        let _this = this
+        this.Axios.post(this.Global.baseUrl + 'addressInfo', {address: this.Global.walletAddress}).then(function (response) {
+          _this.bytes = response.data.objBalance.bytes
+          _this.isWalletInfo = true
+          console.log(response)
+        }).catch(function (error) {
+          _this.isWalletInfo = false
+          console.log(error)
+          console.log('错误')
+        })
+        // console.log(decryptedStr)
         this.dialogVisible = true
+        this.jiemichenggong = true
       } catch (e) {
+        this.dialogVisible = true
+        this.jiemichenggong = false
         // console.log(e)
         // console.log()
       }

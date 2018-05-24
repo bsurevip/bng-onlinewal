@@ -1,6 +1,6 @@
 <template>
     <div v-if="this.Global.walletAddress">
-      <div  v-for="(item) in objTransactions" key="key">
+      <div  v-for="(item, index) in objTransactions" :key="index">
         <div class="WalletInfoHeader clearfix">
           <div class="left title" style="cursor: pointer" @click="trandingRecordDialog(item.unit)"><span>Unit</span>{{item.unit}}</div>
           <div class="right date">{{new Date(item.date).toLocaleString()}}</div>
@@ -8,7 +8,7 @@
         <div class="WalletInfoContent">
           <el-row>
             <el-col :span="14">
-              <el-row  v-for="(fromItem) in item.from" key="fromIndex">
+              <el-row  v-for="(fromItem, fromIndex) in item.from" :key="fromIndex">
                 <el-col :span="18">
                   <div>
                     <div>{{fromItem.address}}</div>
@@ -20,7 +20,7 @@
               </el-row>
             </el-col>
             <el-col :span="10">
-              <div v-for="(toItem) in item.to" key="toIndex">
+              <div v-for="(toItem, toIndex) in item.to" :key="toIndex">
                 <div>{{toItem.address}}</div>
                 <div>{{toItem.amount}}</div>
               </div>
@@ -36,11 +36,11 @@
         <span style="text-align: left" class="trandingdialog">
           <h4>Children：</h4>
           <ul>
-              <li v-for="ChildrenItem in tradingRecordObj.child" key="ChildrenItemkey">{{ChildrenItem}}</li>
+              <li v-for="(ChildrenItem, ChildrenItemkey) in tradingRecordObj.child" :key="ChildrenItemkey">{{ChildrenItem}}</li>
           </ul>
           <h4>Parents：</h4>
            <ul>
-              <li v-for="parentItem in tradingRecordObj.parents" key="ChildrenItemkey">{{parentItem}}</li>
+              <li v-for="(parentItem, ChildrenItemkey) in tradingRecordObj.parents" :key="ChildrenItemkey">{{parentItem}}</li>
           </ul>
           <h4>latest_included_mc_index : {{tradingRecordObj.latest_included_mc_index}}</h4>
           <h4>level : {{tradingRecordObj.level}}</h4>
@@ -50,7 +50,7 @@
           <h4>fees : {{tradingRecordObj.headers_commission + tradingRecordObj.payload_commission}}</h4>
           <h4>witnesses：</h4>
            <ul>
-              <li v-for="(witnessItem, witnessIndex) in tradingRecordObj.witnesses" key="witness">{{witnessIndex}} : {{witnessItem}}</li>
+              <li v-for="(witnessItem, witnessIndex) in tradingRecordObj.witnesses" :key="witnessIndex">{{witnessIndex}} : {{witnessItem}}</li>
           </ul>
         </span>
         <span slot="footer" class="dialog-footer">

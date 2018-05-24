@@ -2,7 +2,7 @@
   <div v-if="transferInit">
     <div v-if="this.Global.walletAddress">
       <el-form :model="dynamicValidateForm" ref="dynamicValidateForm" label-width="100px" class="demo-dynamic">
-        <el-row v-for="(domain, index) in   dynamicValidateForm.domains" :key="domain.key">
+        <el-row v-for="(domain, index) in   dynamicValidateForm.domains" :key="index">
           <el-col :span="10">
             <el-form-item
               :prop="'domains.' + index + '.address'"
@@ -44,10 +44,10 @@
       :visible.sync="dialogVisible"
       width="30%"
       :before-close="handleClose">
-      <span v-if="transferAccounts">转账成功</span>
-      <span v-else>转账失败</span>
+      <span v-if="transferAccounts">{{massge}}</span>
+      <span v-else>{{massge}}</span>
       <span slot="footer" class="dialog-footer">
-    <el-button @click="dialogVisible = false">取 消</el-button>
+    <!--<el-button @click="dialogVisible = false">取 消</el-button>-->
     <el-button type="primary" @click="transferAccountsInit">确 定</el-button>
   </span>
     </el-dialog>
@@ -61,6 +61,7 @@ export default {
       transferAccounts: true,
       dialogVisible: false,
       transferInit: true,
+      massge: '转账成功',
       transferAccountsData: {},
       dynamicValidateForm: {
         domains: [{
@@ -122,14 +123,16 @@ export default {
             {data: _this.init()}
           ).then(function (response) {
             console.log(response)
+            _this.massge = '转账成功'
             console.log('转账成功')
             _this.dialogVisible = true
             _this.transferAccounts = true
           }).catch(function (error) {
-            console.log(error)
+            console.log(error.response.data.err)
+            _this.massge = error.response.data.err
             _this.dialogVisible = true
             _this.transferAccounts = false
-            console.log('用户失败')
+            console.log('转账失败')
           })
           // alert('submit!')
         } else {

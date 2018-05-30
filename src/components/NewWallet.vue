@@ -71,7 +71,7 @@ export default {
       dialogVisible: false,
       qrcodedialogVisible: false,
       createWalletLoading: false,
-      cryptoMassge: '', // 加密的数据
+      cryptoMassge: {}, // 加密的数据
       fileName: '', // 生成文件的名字
       command: '', // 钱包口令
       ruleForm: {
@@ -109,6 +109,7 @@ export default {
           this.Global.walletAddress = this.cryptoMassge.address
           this.Global.definition = this.cryptoMassge.definition
           this.Global.mnemonic_phrase = this.cryptoMassge.mnemonic_phrase
+          this.Global.walletId = this.cryptoMassge.wallet
           this.command = this.cryptoMassge.mnemonic_phrase
           this.crypto(this.cryptoMassge, this.ruleForm.key)
           this.createWalletLoading = !this.createWalletLoading

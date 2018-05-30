@@ -75,6 +75,14 @@ function createWallet(mnemonic_phrase) {
     //console.log(JSON.stringify(obj));
 }
 
+function signWithLocalPrivateKey(mnemonic_phrase, passphrase, account, is_change, address_index) {
+  var mnemonic = new Mnemonic(mnemonic_phrase);
+  var xPrivKey = mnemonic.toHDPrivateKey(passphrase);
+  var path = "m/44'/0'/" + account + "'/" + is_change + "/" + address_index;
+  var privateKey = xPrivKey.derive(path).privateKey;
+  var privKeyBuf = privateKey.bn.toBuffer({size: 32}); // https://github.com/bitpay/bitcore-lib/issues/47
+  return privKeyBuf;
+}
 
 // function create(strXPubKey, callbacks) {
 //     walletDefinedByKeys.createWalletByDevices(strXPubKey, 0, 1, [], "wallet", false, function (walletid) {

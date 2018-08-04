@@ -18,8 +18,11 @@ DAGX团队创造性提出了DAGX Value Layers分层架构体系，由不同功�
 DAGX公链1.0已完成开发和上线测试，并在医疗健康、保险科技等多行业展开落地合作。依托中钰资本等合作方丰富的医疗健康资源，DAGX重点赋能 “医疗健康、保险互助” 行业，打造健康与保险行业数字资产公链生态，推动各行业企业实现资产上链和价值互联、交换。
 #DAGX online wallet
 
-npm install -g bower
-npm install -g grunt-cli
-bower install
-npm install
-grunt
+- npm install -g bower
+- npm install -g grunt-cli
+- bower install
+- npm install
+- grunt
+
+#web 
+npm run build

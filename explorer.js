@@ -7,13 +7,10 @@ var conf = require('bng-core/conf.js');
 var Wallet = require('bng-core/wallet.js');
 var eventBus = require('bng-core/event_bus.js');
 var express = require('express');
-var storage = require('bng-core/storage.js');
 var app = express();
-var network = require('bng-core/network.js');
 var server = require('http').Server(app);
 var io = require('socket.io')(server);
 var ws = require('./controllers/ws');
-var db = require('bng-core/db.js');
 var balance = require('bng-core/balances.js');
 var units = require('./controllers/units');
 var address = require('./controllers/address');
@@ -135,40 +132,36 @@ app.post('/getInfoOnUnit', function (req, res) {
 /**
  * asset unit数组
  */
+/*
 app.post('/getAssetMetadata', function (req, res) {
     device.requestFromHub('hub/get_asset_metadata', req.body.asset, function (err, response) {
         if (err)
             res.json(err);
         res.json(response)
     });
-});
-
+}); */
 
 /**
- * 读取资产信息
+ * 取资产元数据
  */
-app.get('/assetMetadata', function (req, res) {
-    var args = ['/YOzJmia41dvedNaRTq6rBHkLRS48qL3U3zQqZDQF/I=','uuBT2swAX4UJ0RB8HHUv4LAjNz6KvY/WcXK0F22lIjc='];
-
-    var assetid = 'xAEOzHr9SfwIt090RXquP91wRUpgH2oZQoEN0eXbU2o=';
-    //var args = null;
-    Wallet.fetchAssetMetadata(req.query.unit, function (err,asset) {
-        res.send(asset)
-       });
-     
+app.post('/getAssetMetadata', function(req,res){
+    Wallet.fetchAssetMetadata(req.body.asset, function (err,asset) {
+        if(err)
+        {
+            res.json({errcode:1,errmsg:err});
+        }
+        res.json(asset);
+    });
 });
 
 /**
  * 读取余额
  */
-app.get('/balance',function(req,res){
-    balance.readOutputsBalance(req.query.address,function(balance){
+app.post('/getBalance',function(req,res){
+    balance.readOutputsBalance(req.body.address,function(balance){
         res.send(balance);
     })
 });
-
-
-
 
 
 app.use(function (req, res, next) {

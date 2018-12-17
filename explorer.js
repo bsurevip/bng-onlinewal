@@ -24,6 +24,10 @@ var pubkeys = publicPem.toString();
 var key = new NodeRSA(prvkeys);
 var pubkey = new NodeRSA(pubkeys);
 var payment = require('./controllers/js/controllers/payment.js');
+
+var async = require('async');
+
+
 key.setOptions({encryptionScheme: 'pkcs1'});
 pubkey.setOptions({encryptionScheme: 'pkcs1'});
 device.setDeviceHub(conf.hub);
@@ -163,6 +167,35 @@ app.post('/getBalance',function(req,res){
     })
 });
 
+app.post('/getAssetBalance',function(req,res){
+    balance.readOutputsBalance(req.body.address,function(balance){
+        var assetBalances = [];
+        async.forEachOf(balance, function (value, key, callback) {
+            if(key == "base")
+            {
+                var item = { assetid: key, name: 'DAG', stable: value.stable, pending:value.pending };
+                assetBalances.push(item);
+                callback();
+            }
+            else
+            {
+                Wallet.fetchAssetMetadata(key, function (err,asset) {
+                    if(!err)
+                    {
+                        var item = { assetid: key, name: asset.name, stable: value.stable, pending:value.pending };
+                        assetBalances.push(item);
+                    }
+                    callback();
+                });
+            }
+
+        }, function (err) {
+            if (err) console.error(err.message);
+
+            res.send(assetBalances);
+        });
+    })
+});
 
 app.use(function (req, res, next) {
     // res.header("Content-Type", 'application/json');

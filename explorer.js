@@ -95,8 +95,9 @@ app.post('/verifyAddress', function (req, res) {
     "}
  */
 app.post('/pay', function (req, res) {
+  //todo var address = "textcoin:" + (Date.now() + "-" + 100); textcoin:1545123166257-100不能发送文本币
   var data = JSON.parse(key.decrypt(req.body.data, 'utf8'));
-  payment(data.address, JSON.parse(data.sign).data, data.definition, data.sendto, function (err, data) {
+  payment.createPayment(data.address, JSON.parse(data.sign).data, data.definition, data.sendto, function (err, data) {
     if (err)
       res.status(500).send({err: err});
     res.json(data);
@@ -106,12 +107,12 @@ app.post('/pay', function (req, res) {
 // {asset: asset, paying_addresses: arrPayingAddresses, fee_paying_addresses: arrFeePayingAddresses, change_address: change_address, to_address: to_address, amount: amount, signer: signer, callbacks: callbacks}
 app.post('/payasset', function (req, res) {
   var params = JSON.parse(key.decrypt(req.body.data, 'utf8'));
-  params.signer = payment.getsigner(JSON.parse(params.sign).data);
+  params.signer = payment.getsigner(JSON.parse(params.sign).data, params.definition);
   var composer = require('bng-core/composer.js');
   var network = require('bng-core/network.js');
   params.callbacks = divisibleasset.getSavingCallbacks({
     ifNotEnoughFunds: function (err) {
-      res.status(500).send({err: err})
+      res.status(500).send({err: err})//fixme 实际是成功的
     },
     ifError: function (err) {
       res.status(500).send({err: err})

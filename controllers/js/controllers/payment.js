@@ -22,29 +22,9 @@ function signWithLocalPrivateKey(mnemonic_phrase, passphrase, account, is_change
   return privKeyBuf;
 }
 
-module.exports.getsigner = function getsigner(key) {
-  return {
-    readSigningPaths: function (conn, address, handleLengthsBySigningPaths) {
-      handleLengthsBySigningPaths({r: 88});
-    },
-    readDefinition: function (conn, address, handleDefinition) {
-      handleDefinition(null, definition);
-    },
-    sign: function (objUnsignedUnit, assocPrivatePayloads, address, signing_path, handleSignature) {
-      var buf_to_sign = objectHash.getUnitHashToSign(objUnsignedUnit);
-      // var derivedPrivateKey = signWithLocalPrivateKey(
-      //     walletdata["mnemonic_phrase"],
-      //     walletdata["passphrase"],
-      //     0,
-      //     walletdata["is_change"],
-      //     walletdata["address_index"]
-      // );
-      handleSignature(null, ecdsaSig.sign(buf_to_sign, new Buffer(key)));
-    }
-  }
-}
+module.exports.getsigner = getsigner
 module.exports.createPayment = function createPayment(address, key, definition, outputs, cb) {
-  var signer = getsigner(key);
+  var signer = getsigner(key, definition);
   var composer = require('bng-core/composer.js');
   var network = require('bng-core/network.js');
   var callbacks = composer.getSavingCallbacks({
@@ -67,7 +47,27 @@ module.exports.createPayment = function createPayment(address, key, definition, 
   var out = arrOutputs.concat(outputs);
   composer.composePaymentJoint([address], out, signer, callbacks);
 }
-
+function getsigner(key, definition) {
+  return {
+    readSigningPaths: function (conn, address, handleLengthsBySigningPaths) {
+      handleLengthsBySigningPaths({r: 88});
+    },
+    readDefinition: function (conn, address, handleDefinition) {
+      handleDefinition(null, definition);
+    },
+    sign: function (objUnsignedUnit, assocPrivatePayloads, address, signing_path, handleSignature) {
+      var buf_to_sign = objectHash.getUnitHashToSign(objUnsignedUnit);
+      // var derivedPrivateKey = signWithLocalPrivateKey(
+      //     walletdata["mnemonic_phrase"],
+      //     walletdata["passphrase"],
+      //     0,
+      //     walletdata["is_change"],
+      //     walletdata["address_index"]
+      // );
+      handleSignature(null, ecdsaSig.sign(buf_to_sign, new Buffer(key)));
+    }
+  }
+}
 // function loadWalletConfig(onDone) {
 //     var data = fs.readFileSync(payingConfigFile, 'utf8');
 //     walletdata = JSON.parse(data);

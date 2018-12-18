@@ -1,6 +1,6 @@
 
 var Mnemonic = require('bitcore-mnemonic');
-!function signWithLocalPrivateKey(mnemonic_phrase, passphrase, account, is_change, address_index) {
+function signWithLocalPrivateKey(mnemonic_phrase, passphrase, account, is_change, address_index) {
     var mnemonic = new Mnemonic(mnemonic_phrase);
     var xPrivKey = mnemonic.toHDPrivateKey(passphrase);
     var path = "m/44'/0'/" + account + "'/" + is_change + "/" + address_index;
@@ -8,7 +8,7 @@ var Mnemonic = require('bitcore-mnemonic');
     var privKeyBuf = privateKey.bn.toBuffer({size: 32}); // https://github.com/bitpay/bitcore-lib/issues/47
   console.log(JSON.stringify(privKeyBuf))
     return privKeyBuf;
-}("bid august today review squirrel frog brown casino silk ceiling valve nurse","",0,0,0);
+}
 // var test =signWithLocalPrivateKey("chapter subway west before husband robust step awful between target benefit cause","",0,0,0);
 // var crypto = require('crypto')
 //     ,fs = require('fs');

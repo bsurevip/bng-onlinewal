@@ -12,62 +12,57 @@
 var objectHash = require('bng-core/object_hash.js');
 var ecdsaSig = require('bng-core/signature.js');
 var Mnemonic = require('bitcore-mnemonic');
-var keys;
-var definitions;
-var signer = {
-    readSigningPaths: function (conn, address, handleLengthsBySigningPaths) {
-        handleLengthsBySigningPaths({r: 88});
-    },
-    readDefinition: function (conn, address, handleDefinition) {
-        handleDefinition(null, definitions);
-    },
-    sign: function (objUnsignedUnit, assocPrivatePayloads, address, signing_path, handleSignature) {
-        var buf_to_sign = objectHash.getUnitHashToSign(objUnsignedUnit);
-        // var derivedPrivateKey = signWithLocalPrivateKey(
-        //     walletdata["mnemonic_phrase"],
-        //     walletdata["passphrase"],
-        //     0,
-        //     walletdata["is_change"],
-        //     walletdata["address_index"]
-        // );
-        handleSignature(null, ecdsaSig.sign(buf_to_sign, new Buffer(keys)));
-    }
-};
-
 
 function signWithLocalPrivateKey(mnemonic_phrase, passphrase, account, is_change, address_index) {
-    var mnemonic = new Mnemonic(mnemonic_phrase);
-    var xPrivKey = mnemonic.toHDPrivateKey(passphrase);
-    var path = "m/44'/0'/" + account + "'/" + is_change + "/" + address_index;
-    var privateKey = xPrivKey.derive(path).privateKey;
-    var privKeyBuf = privateKey.bn.toBuffer({size: 32}); // https://github.com/bitpay/bitcore-lib/issues/47
-    return privKeyBuf;
+  var mnemonic = new Mnemonic(mnemonic_phrase);
+  var xPrivKey = mnemonic.toHDPrivateKey(passphrase);
+  var path = "m/44'/0'/" + account + "'/" + is_change + "/" + address_index;
+  var privateKey = xPrivKey.derive(path).privateKey;
+  var privKeyBuf = privateKey.bn.toBuffer({size: 32}); // https://github.com/bitpay/bitcore-lib/issues/47
+  return privKeyBuf;
 }
 
 module.exports = function createPayment(address, key, definition, outputs, cb) {
-    keys = key;
-    definitions = definition;
-    var composer = require('bng-core/composer.js');
-    var network = require('bng-core/network.js');
-    var callbacks = composer.getSavingCallbacks({
-        ifNotEnoughFunds: function (err) {
-            cb(err)
-        },
-        ifError: function (err) {
-            cb(err)
-        },
-        ifOk: function (objJoint) {
-            network.broadcastJoint(objJoint);
-            cb(null, objJoint)
-        }
-    });
+  var signer = {
+    readSigningPaths: function (conn, address, handleLengthsBySigningPaths) {
+      handleLengthsBySigningPaths({r: 88});
+    },
+    readDefinition: function (conn, address, handleDefinition) {
+      handleDefinition(null, definition);
+    },
+    sign: function (objUnsignedUnit, assocPrivatePayloads, address, signing_path, handleSignature) {
+      var buf_to_sign = objectHash.getUnitHashToSign(objUnsignedUnit);
+      // var derivedPrivateKey = signWithLocalPrivateKey(
+      //     walletdata["mnemonic_phrase"],
+      //     walletdata["passphrase"],
+      //     0,
+      //     walletdata["is_change"],
+      //     walletdata["address_index"]
+      // );
+      handleSignature(null, ecdsaSig.sign(buf_to_sign, new Buffer(key)));
+    }
+  };
+  var composer = require('bng-core/composer.js');
+  var network = require('bng-core/network.js');
+  var callbacks = composer.getSavingCallbacks({
+    ifNotEnoughFunds: function (err) {
+      cb(err)
+    },
+    ifError: function (err) {
+      cb(err)
+    },
+    ifOk: function (objJoint) {
+      network.broadcastJoint(objJoint);
+      cb(null, objJoint)
+    }
+  });
 
-    var arrOutputs = [
-        {address: address, amount: 0},      // the change
-        // {address: payee_address, amount: 100}  // the receiver
-    ];
-    var out = arrOutputs.concat(outputs);
-    composer.composePaymentJoint([address], out, signer, callbacks);
+  var arrOutputs = [
+    {address: address, amount: 0},      // the change
+    // {address: payee_address, amount: 100}  // the receiver
+  ];
+  var out = arrOutputs.concat(outputs);
+  composer.composePaymentJoint([address], out, signer, callbacks);
 }
 
 // function loadWalletConfig(onDone) {

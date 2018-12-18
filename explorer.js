@@ -109,7 +109,7 @@ app.post('/payasset', function (req, res) {
   params.signer = payment.getsigner(JSON.parse(params.sign).data);
   var composer = require('bng-core/composer.js');
   var network = require('bng-core/network.js');
-  params.callbacks = composer.getSavingCallbacks({
+  params.callbacks = divisibleasset.getSavingCallbacks({
     ifNotEnoughFunds: function (err) {
       res.status(500).send({err: err})
     },

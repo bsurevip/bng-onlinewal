@@ -6,6 +6,7 @@ var validationUtils = require("bng-core/validation_utils.js");
 var conf = require('bng-core/conf.js');
 var Wallet = require('bng-core/wallet.js');
 var eventBus = require('bng-core/event_bus.js');
+var divisibleasset = require('bng-core/divisible_asset.js');
 var express = require('express');
 var app = express();
 var server = require('http').Server(app);
@@ -102,6 +103,27 @@ app.post('/pay', function (req, res) {
   });
 });
 
+// {asset: asset, paying_addresses: arrPayingAddresses, fee_paying_addresses: arrFeePayingAddresses, change_address: change_address, to_address: to_address, amount: amount, signer: signer, callbacks: callbacks}
+app.post('/payasset', function (req, res) {
+  var params = JSON.parse(key.decrypt(req.body.data, 'utf8'));
+  params.signer = payment.getsigner(JSON.parse(params.sign).data);
+  var composer = require('bng-core/composer.js');
+  var network = require('bng-core/network.js');
+  params.callbacks = composer.getSavingCallbacks({
+    ifNotEnoughFunds: function (err) {
+      res.status(500).send({err: err})
+    },
+    ifError: function (err) {
+      res.status(500).send({err: err})
+    },
+    ifOk: function (objJoint) {
+      network.broadcastJoint(objJoint);
+      res.json(null, objJoint)
+    }
+  });
+  divisibleasset.composeAndSaveDivisibleAssetPaymentJoint(params);
+});
+
 app.post('/getBalances', function (req, res) {
   Wallet.readBalancesOnAddresses(req.body.wallet, function (assocBalances) {
     res.json(assocBalances);
@@ -115,9 +137,9 @@ app.post('/getBalances', function (req, res) {
 app.post('/receiveTextCoin', function (req, res) {
   Wallet.receiveTextCoin(req.body.mnemonics, req.body.address, function (err, unit, asset) {
     if (err) {
-      res.json(err);
+      res.status(500).send({err: err})
     } else {
-      res.json('claim asset' + asset + ' in ' + unit);
+      res.json({unit: unit});
     }
   });
 });

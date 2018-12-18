@@ -7,13 +7,11 @@ var conf = require('bng-core/conf.js');
 var Wallet = require('bng-core/wallet.js');
 var eventBus = require('bng-core/event_bus.js');
 var express = require('express');
-var storage = require('bng-core/storage.js');
 var app = express();
-var network = require('bng-core/network.js');
 var server = require('http').Server(app);
 var io = require('socket.io')(server);
 var ws = require('./controllers/ws');
-var db = require('bng-core/db.js');
+var balance = require('bng-core/balances.js');
 var units = require('./controllers/units');
 var address = require('./controllers/address');
 var fs = require('fs');
@@ -26,6 +24,10 @@ var pubkeys = publicPem.toString();
 var key = new NodeRSA(prvkeys);
 var pubkey = new NodeRSA(pubkeys);
 var payment = require('./controllers/js/controllers/payment.js');
+
+var async = require('async');
+
+
 key.setOptions({encryptionScheme: 'pkcs1'});
 pubkey.setOptions({encryptionScheme: 'pkcs1'});
 device.setDeviceHub(conf.hub);
@@ -134,12 +136,65 @@ app.post('/getInfoOnUnit', function (req, res) {
 /**
  * asset unit数组
  */
+/*
 app.post('/getAssetMetadata', function (req, res) {
     device.requestFromHub('hub/get_asset_metadata', req.body.asset, function (err, response) {
         if (err)
             res.json(err);
         res.json(response)
     });
+}); */
+
+/**
+ * 取资产元数据
+ */
+app.post('/getAssetMetadata', function(req,res){
+    Wallet.fetchAssetMetadata(req.body.asset, function (err,asset) {
+        if(err)
+        {
+            res.json({errcode:1,errmsg:err});
+        }
+        res.json(asset);
+    });
+});
+
+/**
+ * 读取余额
+ */
+app.post('/getBalance',function(req,res){
+    balance.readOutputsBalance(req.body.address,function(balance){
+        res.send(balance);
+    })
+});
+
+app.post('/getAssetBalance',function(req,res){
+    balance.readOutputsBalance(req.body.address,function(balance){
+        var assetBalances = [];
+        async.forEachOf(balance, function (value, key, callback) {
+            if(key == "base")
+            {
+                var item = { assetid: key, name: 'DAG', stable: value.stable, pending:value.pending };
+                assetBalances.push(item);
+                callback();
+            }
+            else
+            {
+                Wallet.fetchAssetMetadata(key, function (err,asset) {
+                    if(!err)
+                    {
+                        var item = { assetid: key, name: asset.name, stable: value.stable, pending:value.pending };
+                        assetBalances.push(item);
+                    }
+                    callback();
+                });
+            }
+
+        }, function (err) {
+            if (err) console.error(err.message);
+
+            res.send(assetBalances);
+        });
+    })
 });
 
 app.use(function (req, res, next) {

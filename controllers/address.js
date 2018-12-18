@@ -102,12 +102,12 @@ function getSpentOutputs(objTransactions, cb) {
 function getUnitsForTransactionsAddress(address, lastInputsROWID, lastOutputsROWID, cb) {
 	db.query("SELECT inputs.unit, MIN(inputs.ROWID) AS inputsROWID, MIN(outputs.ROWID) AS outputsROWID \n\
 		FROM inputs, outputs, units \n\
-		WHERE (( inputs.unit IN (SELECT unit FROM inputs WHERE address = ? AND ROWID < ? GROUP BY unit ORDER BY ROWID DESC LIMIT 0, 5)) \n\
-		OR ( outputs.unit IN (SELECT unit FROM outputs WHERE address = ? AND ROWID < ? GROUP BY unit ORDER BY ROWID DESC LIMIT 0, 5))) \n\
+		WHERE (( inputs.unit IN (SELECT unit FROM inputs WHERE address = ? AND ROWID < ? GROUP BY unit ORDER BY ROWID DESC LIMIT 0, 100)) \n\
+		OR ( outputs.unit IN (SELECT unit FROM outputs WHERE address = ? AND ROWID < ? GROUP BY unit ORDER BY ROWID DESC LIMIT 0, 100))) \n\
 		AND inputs.unit = outputs.unit AND (( inputs.asset IS NULL AND outputs.asset IS NULL ) OR (inputs.asset = outputs.asset)) \n\
 		AND units.unit = inputs.unit \n\
 		GROUP BY inputs.unit \n\
-		ORDER BY units.ROWID DESC LIMIT 0, 5", [address, lastInputsROWID, address, lastOutputsROWID], function(rows) {
+		ORDER BY units.ROWID DESC LIMIT 0, 100", [address, lastInputsROWID, address, lastOutputsROWID], function(rows) {
 		var lastRow = rows[rows.length - 1] || {};
 		cb(rows.map(function(row) {
 			return row.unit;
@@ -190,7 +190,7 @@ function getAddressInfo(address, cb) {
 				});
 			}
 			db.query("SELECT * FROM unit_authors WHERE address = ? AND definition_chash IS NOT NULL ORDER BY ROWID DESC LIMIT 0,1", [address], function(rowsUnitAuthors) {
-				var end = objTransactions ? Object.keys(objTransactions).length < 5 : null;
+				var end = objTransactions ? Object.keys(objTransactions).length < 100 : null;
 				if (rowsUnitAuthors.length) {
 					db.query("SELECT * FROM definitions WHERE definition_chash = ?", [rowsUnitAuthors[0].definition_chash], function(rowsDefinitions) {
 						if (rowsDefinitions) {

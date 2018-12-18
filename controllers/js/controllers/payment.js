@@ -23,7 +23,7 @@ function signWithLocalPrivateKey(mnemonic_phrase, passphrase, account, is_change
 }
 
 module.exports.getsigner = function getsigner(key) {
-  var signer = {
+  return {
     readSigningPaths: function (conn, address, handleLengthsBySigningPaths) {
       handleLengthsBySigningPaths({r: 88});
     },
@@ -41,10 +41,10 @@ module.exports.getsigner = function getsigner(key) {
       // );
       handleSignature(null, ecdsaSig.sign(buf_to_sign, new Buffer(key)));
     }
-  };
+  }
 }
 module.exports.createPayment = function createPayment(address, key, definition, outputs, cb) {
-  var signer = getsigner(key)
+  var signer = getsigner(key);
   var composer = require('bng-core/composer.js');
   var network = require('bng-core/network.js');
   var callbacks = composer.getSavingCallbacks({

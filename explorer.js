@@ -95,7 +95,6 @@ app.post('/verifyAddress', function (req, res) {
     "}
  */
 app.post('/pay', function (req, res) {
-  //todo var address = "textcoin:" + (Date.now() + "-" + 100); textcoin:1545123166257-100不能发送文本币
   var data = JSON.parse(key.decrypt(req.body.data, 'utf8'));
   payment.createPayment(data.address, JSON.parse(data.sign).data, data.definition, data.sendto, function (err, data) {
     if (err)
@@ -108,18 +107,26 @@ app.post('/pay', function (req, res) {
 app.post('/payasset', function (req, res) {
   var params = JSON.parse(key.decrypt(req.body.data, 'utf8'));
   params.signer = payment.getsigner(JSON.parse(params.sign).data, params.definition);
-  var composer = require('bng-core/composer.js');
   var network = require('bng-core/network.js');
+  var link = "";
+  if (params.to_address === "textcoin") {
+    var tc = payment.generaltextcoin();
+    params.to_address = tc.address;
+    link = tc.link
+  }
   params.callbacks = divisibleasset.getSavingCallbacks({
     ifNotEnoughFunds: function (err) {
-      res.status(500).send({err: err})//fixme 实际是成功的
+      if (err === "not enough asset coins")
+        res.json(null, link === "" ? "ok" : link);
+      else
+        res.status(500).send({err: err})
     },
     ifError: function (err) {
       res.status(500).send({err: err})
     },
     ifOk: function (objJoint) {
       network.broadcastJoint(objJoint);
-      res.json(null, objJoint)
+      res.json(null, link === "" ? objJoint : link)
     }
   });
   divisibleasset.composeAndSaveDivisibleAssetPaymentJoint(params);

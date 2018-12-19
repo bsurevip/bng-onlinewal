@@ -23,10 +23,12 @@ function signWithLocalPrivateKey(mnemonic_phrase, passphrase, account, is_change
 }
 
 module.exports.getsigner = getsigner
+module.exports.generaltextcoin = generaltextcoin
 module.exports.createPayment = function createPayment(address, key, definition, outputs, cb) {
   var signer = getsigner(key, definition);
   var composer = require('bng-core/composer.js');
   var network = require('bng-core/network.js');
+  var link = "";
   var callbacks = composer.getSavingCallbacks({
     ifNotEnoughFunds: function (err) {
       cb(err)
@@ -36,6 +38,8 @@ module.exports.createPayment = function createPayment(address, key, definition, 
     },
     ifOk: function (objJoint) {
       network.broadcastJoint(objJoint);
+      if (link !== "")
+        objJoint.link = link;
       cb(null, objJoint)
     }
   });
@@ -44,9 +48,15 @@ module.exports.createPayment = function createPayment(address, key, definition, 
     {address: address, amount: 0},      // the change
     // {address: payee_address, amount: 100}  // the receiver
   ];
+  if (outputs.address === "textcoin") {
+    var tc = generaltextcoin();
+    outputs.address = tc.address;
+    link = tc.link
+  }
   var out = arrOutputs.concat(outputs);
   composer.composePaymentJoint([address], out, signer, callbacks);
 }
+
 function getsigner(key, definition) {
   return {
     readSigningPaths: function (conn, address, handleLengthsBySigningPaths) {
@@ -68,6 +78,16 @@ function getsigner(key, definition) {
     }
   }
 }
+
+function generaltextcoin() {
+  var mnemonic = new Mnemonic();
+  var strMnemonic = mnemonic.toString().replace(/ /g, "-");
+  var pubkey = mnemonic.toHDPrivateKey().derive("m/44'/0'/0'/0/0").publicKey.toBuffer().toString("base64");
+  var address = objectHash.getChash160(["sig", {"pubkey": pubkey}]);
+  var link = "Here is your link to receive textcoin : https://dagx.io/zh/textcoin.html?" + strMnemonic;
+  return {address: address, link: link}
+}
+
 // function loadWalletConfig(onDone) {
 //     var data = fs.readFileSync(payingConfigFile, 'utf8');
 //     walletdata = JSON.parse(data);
